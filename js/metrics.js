@@ -701,8 +701,322 @@ var METRICS = (function () {
     return out;
   }
 
+
+  /* ==========================================================================
+     v3 — EXECUTIVE ATTENTION RANKING AND FUNCTION DRILL-DOWN
+     ========================================================================== */
+
+  // Every exception in the programme, ranked, in one place. Severity is rule-based
+  // rather than a fabricated common currency — a headcount risk and a dollar risk
+  // are not the same unit and pretending otherwise would mislead.
+  function attentionList(data, filters) {
+    var k = kpis(data, filters);
+    var items = [];
+
+    // 1. Shortfall against the leadership commitment
+    if (k.gapToTargetUSD < 0) {
+      items.push({
+        key: 'savings-gap',
+        severity: Math.abs(k.gapToTargetUSD) > k.targetUSD * 0.15 ? 'Critical' : 'High',
+        headline: fmtUSD(Math.abs(k.gapToTargetUSD)) + ' short of the savings commitment',
+        detail: 'Projected ' + fmtUSD(k.projectedYearEndUSD) + ' against a ' + fmtUSD(k.targetUSD) +
+                ' target at the current ' + Math.round(k.realizationRate * 100) + '% realization rate.',
+        impactUSD: Math.abs(k.gapToTargetUSD), owner: 'Finance Lead',
+        page: 2, filters: {}
+      });
+    }
+
+    // 2. Functions that have realized nothing at all
+    var zero = zeroRealization(data, filters);
+    if (zero.length) {
+      var zeroUSD = zero.reduce(function (a, z) { return a + z.plannedUSD; }, 0);
+      items.push({
+        key: 'zero-realization',
+        severity: 'Critical',
+        headline: zero.length + ' functions have realized nothing — ' + fmtUSD(zeroUSD) + ' untouched',
+        detail: zero.map(function (z) { return z.name; }).join(', ') + '. No exits have occurred in any of them.',
+        impactUSD: zeroUSD, owner: 'Transition Lead',
+        page: 2, filters: { functionName: zero.map(function (z) { return z.name; }) }
+      });
+    }
+
+    // 3. Overdue rolloffs, and what continuing to carry them costs
+    var od = overdueDetail(data, filters);
+    if (od.count) {
+      items.push({
+        key: 'overdue-rolloffs',
+        severity: od.count >= 10 ? 'High' : 'Medium',
+        headline: od.count + ' rolloffs overdue, averaging ' + od.avgDelayDays + ' days late',
+        detail: fmtUSD(od.cumulativeLeakageUSD) + ' of leakage already, running at roughly ' +
+                fmtUSD(od.estMonthlyRunRateUSD) + ' a month while they stay open.',
+        impactUSD: od.cumulativeLeakageUSD, owner: 'Transition Lead',
+        page: 2, filters: { statusBucket: ['Overdue / at risk'] }
+      });
+    }
+
+    // 4. Roles about to exit with no knowledge transfer logged
+    var ktRisk = ktRiskRoles(data, filters);
+    if (ktRisk.length) {
+      items.push({
+        key: 'kt-risk',
+        severity: ktRisk.length >= 50 ? 'High' : 'Medium',
+        headline: ktRisk.length + ' roles exit within 30 days with no knowledge transfer started',
+        detail: 'A delivery exposure rather than a cost one today — savings recognize at exit, ' +
+                'so this does not reduce reported savings until service breaks.',
+        impactUSD: 0, owner: 'Delivery Lead — BPO Hub',
+        page: 2, filters: { ktStatus: ['Not Started'] }
+      });
+    }
+
+    // 5. Contracts lapsing inside the window
+    var cliff = contractCliff(data, filters);
+    if (cliff.count) {
+      items.push({
+        key: 'contract-cliff',
+        severity: cliff.count >= 15 ? 'High' : 'Medium',
+        headline: cliff.count + ' non-FTE contracts end within ' + cliff.windowDays + ' days',
+        detail: fmtUSD(cliff.annualCostUSD) + ' of annualised capacity requiring renewal or replacement. ' +
+                'Procurement lead time is typically longer than this window.',
+        impactUSD: 0, owner: 'Vendor Management Lead',
+        page: 3, filters: {}
+      });
+    }
+
+    // 6. Initiatives blocked by something upstream
+    var ih = initiativeHealth(data, filters);
+    if (ih.blocked.length) {
+      items.push({
+        key: 'blocked-initiatives',
+        severity: 'High',
+        headline: ih.blocked.length + ' initiatives blocked by an upstream dependency',
+        detail: ih.blocked.slice(0, 3).map(function (b) { return b.name; }).join('; ') +
+                (ih.blocked.length > 3 ? ' and others.' : '.'),
+        impactUSD: 0, owner: 'Program Management Lead',
+        page: 4, filters: {}
+      });
+    }
+
+    // 7. Initiatives that are simply not staffed
+    if (ih.totalGap > 0) {
+      var worst = ih.understaffed[0];
+      items.push({
+        key: 'resource-gap',
+        severity: ih.totalGap >= 30 ? 'High' : 'Medium',
+        headline: ih.totalGap + ' people short across in-flight initiatives',
+        detail: worst ? ('Largest single gap is ' + worst.name + ' — needs ' + worst.requiredHeadcount +
+                ', has ' + worst.assignedHeadcount + '.') : '',
+        impactUSD: 0, owner: 'Workforce Lead',
+        page: 4, filters: {}
+      });
+    }
+
+    // 8. Capabilities resting on one person
+    var cov = roleCoverage(data, filters);
+    if (cov.singlePoints.length) {
+      items.push({
+        key: 'spof',
+        severity: 'Medium',
+        headline: cov.singlePoints.length + ' capabilities rest on a single person',
+        detail: cov.singlePoints.map(function (r) { return r.capability; }).join(', ') +
+                '. One resignation removes the capability entirely.',
+        impactUSD: 0, owner: 'Workforce Lead',
+        page: 3, filters: {}
+      });
+    }
+
+    // 9. Demand carrying no funding
+    var fund = fundingAlignment(data, filters);
+    if (fund.unfundedPositions) {
+      items.push({
+        key: 'unfunded',
+        severity: 'Medium',
+        headline: fund.unfundedPositions + ' positions on the roster carry no funding source',
+        detail: fmtUSD(fund.unfundedCostUSD) + ' annualised. These need to appear in the ' +
+                data.policy.planningCycle + ' submission or they disappear.',
+        impactUSD: fund.unfundedCostUSD, owner: 'Program Management Lead',
+        page: 3, filters: { fundingSource: ['Unfunded'] }
+      });
+    }
+
+    // 10. Commitments already past their date
+    var acts = actionStats(data, filters);
+    if (acts.overdue) {
+      items.push({
+        key: 'overdue-actions',
+        severity: 'Medium',
+        headline: acts.overdue + ' action items overdue, ' + acts.blocked + ' blocked',
+        detail: acts.high + ' high-priority items remain open across all initiatives.',
+        impactUSD: 0, owner: 'Program Management Lead',
+        page: 4, filters: {}
+      });
+    }
+
+    var rank = { Critical: 0, High: 1, Medium: 2 };
+    items.sort(function (a, b) {
+      if (rank[a.severity] !== rank[b.severity]) return rank[a.severity] - rank[b.severity];
+      return b.impactUSD - a.impactUSD;
+    });
+    return items;
+  }
+
+  function fmtUSD(v) {
+    var a = Math.abs(v);
+    return a >= 950000 ? '$' + (a / 1e6).toFixed(1) + 'M' : '$' + Math.round(a / 1e3) + 'K';
+  }
+
+  // Who and what is falling behind inside one function — the drill-down behind
+  // a variance row. Returns named positions (anonymized ids) and the accountable
+  // owner, so a gap becomes a conversation with someone rather than a number.
+  function functionDrilldown(data, filters, functionName) {
+    var A = asOf(data);
+    var rows = filterRoles(data, filters).filter(function (r) { return r.functionName === functionName; });
+    var owner = rows.length ? rows[0].owner : 'Transition Lead';
+    var horizon = new Date(A); horizon.setDate(horizon.getDate() + 30);
+
+    function daysLate(r) { return Math.round((A - new Date(r.plannedExitDate + 'T00:00:00')) / 86400000); }
+
+    var laggards = rows.filter(function (r) {
+      if (r.overdue) return true;                                   // past its exit date
+      if (!isExited(r) && r.ktStatus === 'Not Started' &&
+          new Date(r.plannedExitDate + 'T00:00:00') <= horizon) return true;  // exits soon, no KT
+      return false;
+    }).map(function (r) {
+      var reasons = [];
+      if (r.overdue) reasons.push('Exit ' + daysLate(r) + ' days overdue');
+      if (r.ktStatus === 'Not Started' && !isExited(r)) reasons.push('No knowledge transfer started');
+      if (r.status === 'Not Started') reasons.push('Transition not begun');
+      return {
+        id: r.id, wave: r.wave, location: r.location, plannedExitDate: r.plannedExitDate,
+        daysLate: r.overdue ? daysLate(r) : null, ktStage: r.ktStage, status: r.status,
+        unrealizedUSD: r.plannedSavingsUSD - r.realizedSavingsUSD,
+        reasons: reasons
+      };
+    }).sort(function (a, b) { return (b.daysLate || 0) - (a.daysLate || 0) || b.unrealizedUSD - a.unrealizedUSD; });
+
+    var exited = rows.filter(isExited).length;
+    var plannedUSD = rows.reduce(function (s, r) { return s + r.plannedSavingsUSD; }, 0);
+    var realizedUSD = rows.reduce(function (s, r) { return s + r.realizedSavingsUSD; }, 0);
+
+    // Work attached to the same domain — so the drill-down shows not just what is
+    // behind, but what is already being done about it and by whom.
+    var domain = rows.length ? rows[0].domain : null;
+    var inis = (data.initiatives || []).filter(function (i) { return i.domain === domain; });
+    var iniIds = inis.map(function (i) { return i.id; });
+    var acts = (data.actions || []).filter(function (a) { return iniIds.indexOf(a.initiativeId) >= 0; });
+
+    return {
+      functionName: functionName, owner: owner, domain: domain,
+      initiatives: inis.map(function (i) {
+        return { id: i.id, name: i.name, owner: i.owner, rag: i.rag, dueDate: i.dueDate,
+                 gap: i.requiredHeadcount - i.assignedHeadcount, blocked: (i.dependsOn || []).length > 0 };
+      }),
+      actions: acts.map(function (a) {
+        return { id: a.id, title: a.title, owner: a.owner, dueDate: a.dueDate,
+                 status: a.status, priority: a.priority, overdue: a.overdue };
+      }),
+      openActions: acts.filter(function (a) { return a.status !== 'Done'; }).length,
+      overdueActions: acts.filter(function (a) { return a.overdue; }).length,
+      total: rows.length, exited: exited, notExited: rows.length - exited,
+      overdue: rows.filter(function (r) { return r.overdue; }).length,
+      ktNotStarted: rows.filter(function (r) { return r.ktStatus === 'Not Started' && !isExited(r); }).length,
+      plannedUSD: plannedUSD, realizedUSD: realizedUSD, unrealizedUSD: plannedUSD - realizedUSD,
+      attainment: plannedUSD ? realizedUSD / plannedUSD : 0,
+      laggards: laggards
+    };
+  }
+
+  // Function-level accountability — who is carrying what, ranked by exposure.
+  // Feeds the Decisions tab so a gap is always attached to a named owner.
+  function functionAccountability(data, filters) {
+    var A = asOf(data);
+    var rows = {};
+    filterRoles(data, filters).forEach(function (r) {
+      var f = rows[r.functionName] = rows[r.functionName] ||
+        { functionName: r.functionName, owner: r.owner, domain: r.domain,
+          total: 0, exited: 0, overdue: 0, ktNotStarted: 0, plannedUSD: 0, realizedUSD: 0 };
+      f.total++;
+      if (isExited(r)) f.exited++;
+      if (r.overdue) f.overdue++;
+      if (!isExited(r) && r.ktStatus === 'Not Started') f.ktNotStarted++;
+      f.plannedUSD += r.plannedSavingsUSD; f.realizedUSD += r.realizedSavingsUSD;
+    });
+    var byDomainActions = {};
+    var iniDomain = {}; (data.initiatives || []).forEach(function (i) { iniDomain[i.id] = i.domain; });
+    (data.actions || []).forEach(function (a) {
+      var d = iniDomain[a.initiativeId]; if (!d) return;
+      byDomainActions[d] = byDomainActions[d] || { open: 0, overdue: 0 };
+      if (a.status !== 'Done') byDomainActions[d].open++;
+      if (a.overdue) byDomainActions[d].overdue++;
+    });
+    var list = Object.keys(rows).map(function (k) {
+      var f = rows[k];
+      f.unrealizedUSD = f.plannedUSD - f.realizedUSD;
+      f.attainment = f.plannedUSD ? f.realizedUSD / f.plannedUSD : 0;
+      f.behind = f.overdue + f.ktNotStarted;
+      f.rag = rag(f.attainment);
+      var da = byDomainActions[f.domain] || { open: 0, overdue: 0 };
+      f.openActions = da.open; f.overdueActions = da.overdue;
+      return f;
+    });
+    // rank by what actually needs a conversation: unrealized dollars, then people behind
+    list.sort(function (a, b) { return b.unrealizedUSD - a.unrealizedUSD || b.behind - a.behind; });
+    return {
+      rows: list,
+      needingAttention: list.filter(function (f) { return f.rag !== 'Green' || f.behind > 0; }),
+      totalUnrealizedUSD: list.reduce(function (s, f) { return s + Math.max(0, f.unrealizedUSD); }, 0)
+    };
+  }
+
+  // Cost concentration (Pareto) — where the money actually sits, not just headcount.
+  function costConcentration(data, filters) {
+    var rows = byDimension(data, filters, 'functionName').map(function (x) {
+      var roles = filterRoles(data, filters).filter(function (r) { return r.functionName === x.key; });
+      return {
+        name: x.key, headcount: x.headcount,
+        costUSD: roles.reduce(function (s, r) { return s + r.onshoreAnnualCost; }, 0),
+        plannedUSD: x.plannedUSD, realizedUSD: x.realizedUSD
+      };
+    }).sort(function (a, b) { return b.costUSD - a.costUSD; });
+    var total = rows.reduce(function (s, r) { return s + r.costUSD; }, 0) || 1;
+    var run = 0;
+    rows.forEach(function (r) {
+      r.share = r.costUSD / total;
+      run += r.costUSD; r.cumulativeShare = run / total;
+      r.costPerRole = r.headcount ? r.costUSD / r.headcount : 0;
+    });
+    // how few functions carry the majority of cost
+    var half = 0, eighty = 0;
+    for (var i = 0; i < rows.length; i++) {
+      if (!half && rows[i].cumulativeShare >= 0.5) half = i + 1;
+      if (!eighty && rows[i].cumulativeShare >= 0.8) eighty = i + 1;
+    }
+    return { rows: rows, totalUSD: total, functionsForHalf: half, functionsForEighty: eighty };
+  }
+
+  // Knowledge-transfer readiness by wave — the leading indicator of delivery risk.
+  function ktByWave(data, filters) {
+    var roles = filterRoles(data, filters);
+    var labels = { W1: 'W1 · Feb–Jun', W2: 'W2 · Jul', W3: 'W3 · Aug', W4: 'W4 · Sep' };
+    return ['W1', 'W2', 'W3', 'W4'].map(function (w) {
+      var rr = roles.filter(function (r) { return r.wave === w; });
+      var notStarted = rr.filter(function (r) { return r.ktStatus === 'Not Started'; }).length;
+      return {
+        wave: w, label: labels[w], total: rr.length,
+        complete: rr.filter(function (r) { return r.ktStatus === 'Complete'; }).length,
+        inProgress: rr.filter(function (r) { return r.ktStatus === 'In Progress'; }).length,
+        notStarted: notStarted,
+        exited: rr.filter(isExited).length,
+        readiness: rr.length ? rr.filter(function (r) { return r.ktStatus === 'Complete'; }).length / rr.length : 0,
+        exposure: rr.length ? notStarted / rr.length : 0
+      };
+    });
+  }
+
   return {
     FILTER_DIMS: FILTER_DIMS, SLICER_DIMS: SLICER_DIMS, rag: rag,
+    attentionList: attentionList, functionDrilldown: functionDrilldown,
+    functionAccountability: functionAccountability,
+    costConcentration: costConcentration, ktByWave: ktByWave,
     WORKFORCE_DIMS: WORKFORCE_DIMS, WORKFORCE_ONLY_DIMS: WORKFORCE_ONLY_DIMS, ALL_DIMS: ALL_DIMS,
     filterWorkforce: filterWorkforce, workforceMix: workforceMix, vendorFootprint: vendorFootprint,
     locationAlignment: locationAlignment, roleCoverage: roleCoverage, contractCliff: contractCliff,

@@ -51,6 +51,15 @@ var DATA = (function () {
     ['Tier 2 Support',            'Operations',          'Service & Support',   2,  2,  58,  58, 118],
     ['Task Processing',           'Operations',          'Process Operations',  1,  1,  28,  28, 112]
   ];
+  // Accountable owner per domain. Role titles only — never a person's name.
+  var OWNER_BY_DOMAIN = {
+    'Process Operations':  'Domain Lead — Process Operations',
+    'Service & Support':   'Domain Lead — Service & Support',
+    'Data':                'Domain Lead — Data',
+    'Applications':        'Domain Lead — Applications',
+    'Infrastructure':      'Domain Lead — Infrastructure',
+    'Unclassified':        'Transition Lead'
+  };
   var ZERO_REALIZATION = ['Storage & Backup', 'Compute Infrastructure', 'Cloud Support', 'Database Administration'];
 
   // --- Quarterly savings periods ($K) — time-phased plan vs. actual ---------
@@ -176,6 +185,7 @@ var DATA = (function () {
         plannedExitDate: pDate, actualExitDate: aDate,
         exitVarianceDays: v,
         overdue: overdue,
+        owner: OWNER_BY_DOMAIN[domain] || 'Transition Lead',
         status: status, ktStatus: ktStage === 'Complete' ? 'Complete' : (ktStage === 'Not started' ? 'Not Started' : 'In Progress'),
         ktStage: ktStage, statusBucket: statusBucket, varianceBucket: varianceBucket,
         onshoreAnnualCost: onshoreK * 1000, bpoAnnualCost: bpoK * 1000,

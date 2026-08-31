@@ -2,7 +2,7 @@
 
 ## What this is
 
-A static, executive-grade demo (plain HTML/CSS/JS, CDN deps, no build step). **Five tabs
+A static, executive-grade demo (plain HTML/CSS/JS, CDN deps, no build step). **Six tabs
 organised around executive questions, not data sources.** All data is invented. Deploys to Vercel
 as-is and opens from `file://`. Separate deployment from v1 and v2 — do not merge them.
 
@@ -23,10 +23,10 @@ rendering. Neither computes a figure.
 |---|---|
 | `js/data.js` | Transition roles, each with an accountable `owner` (role title, never a person) |
 | `js/workforce.js` | Roster, WFT forecast, initiatives, actions, funding, `DATA.policy` |
-| `js/metrics.js` | All aggregation. `attentionList`, `functionDrilldown`, `costConcentration`, `ktByWave` are v3 additions |
+| `js/metrics.js` | All aggregation. `attentionList`, `functionDrilldown`, `functionAccountability`, `costConcentration`, `ktByWave` are v3 additions |
 | `js/forecast.js` | Forecast methods, confidence band, leakage projection |
 | `js/app.js` | Engine (above). Exposes `C`, `alpha`, `chartClick`, `dimColors`, `showModal`, scenario math |
-| `js/pages.js` | `INFO` map, all five tabs' markup, all rendering, storylines, drill-down, scenario UI |
+| `js/pages.js` | `INFO` map, all six tabs' markup, all rendering, storylines, drill-down, scenario UI |
 | `js/exports.js` | 2027 CT / EBC workbook, Jira CSV, roster CSV |
 | `js/admin.js` | Admin-only DOM — mounted only when role === Admin |
 | `js/chatbot.js` | Intent parser → METRICS |
@@ -90,7 +90,7 @@ names anywhere** — owners are role titles, vendors are Greek letters, position
 
 ## Verify before committing
 
-`node --check js/*.js`, load the page, walk all five tabs, confirm zero console errors, check no
+`node --check js/*.js`, load the page, walk all six tabs, confirm zero console errors, check no
 tab renders `undefined` or `NaN`, open a function drill-through, flip `bpoHubCountsAsNonFte` and
 confirm every tab moves, spot-check chatbot answers against the visuals, and confirm the Viewer
 role contains no admin DOM. There is no login screen — do not reintroduce one.

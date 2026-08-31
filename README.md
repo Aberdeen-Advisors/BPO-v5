@@ -1,28 +1,32 @@
 # BPO Hub Transition — Executive Center (v3)
 
 A simplified executive control tower for a Business Process Outsourcing (BPO) Hub workforce
-transition. **Five tabs, organised around executive questions rather than data sources.**
+transition. **Six tabs, organised around executive questions rather than data sources.**
 
 **This is a prototype on illustrative, invented data.** No figure on any page is real.
 
 > ### What changed from v2
 > v2 had 10 tabs, 40 KPI cards and 21 charts, organised by where the data came from
-> (transition / onshore / offshore / workforce / execution). v3 has **5 tabs, 19 KPI cards and
-> 8 charts**, organised by what an executive actually needs to decide. Every duplicate metric,
+> (transition / onshore / offshore / workforce / execution). v3 has **6 tabs, 26 KPI cards in 12
+> labelled question groups, and 9 charts**, organised by what an executive actually needs to decide. Every duplicate metric,
 > every chart that restated a table, and every visual with no action attached was removed.
 > v1, v2 and v3 deploy as separate Vercel projects from separate repositories.
 
 ---
 
-## The five tabs
+## The six tabs
 
 | # | Tab | The question it answers |
 |---|---|---|
 | 01 | **Executive Brief** | Where do we stand, where do we land, and what needs me first? |
 | 02 | **Savings & Delivery** | What is driving the gap, who owns it, and what would change it? |
-| 03 | **Workforce** | Are we the shape we committed to, and where are we fragile? |
-| 04 | **Decisions** | What is blocked, what is slipping, what is already agreed? |
-| 05 | **Reference** | Can I trust this number, and how does it connect? |
+| 03 | **Workforce** | Are we the shape we committed to, and where are we fragile today? |
+| 04 | **Planning & Forecast** | Where is the workforce heading, and is the work funded and assigned? |
+| 05 | **Decisions** | Who is carrying the gap, what is blocked, what is slipping? |
+| 06 | **Reference** | Can I trust this number, where does it appear, and where is it pulled from? |
+
+Every tab's KPI cards sit in labelled question groups — *"Where do we land?"*, *"What is delay
+costing us?"*, *"Who is carrying the gap?"* — so the grouping itself carries meaning.
 
 ## Design rules
 
@@ -30,9 +34,9 @@ transition. **Five tabs, organised around executive questions rather than data s
 tiles — two or three cards beneath a heading like *"Where do we land?"* So the grouping itself
 carries meaning.
 
-**Every methodology popover leads with that question in bold**, then the formula and caveats.
-Open the ⓘ on Rolloff Attainment and the first line is *"Are roles leaving on the schedule we
-committed to?"*
+**Every methodology popover opens with that question in a highlighted callout**, then the formula
+and caveats beneath. Open the ⓘ on Savings vs. Plan-to-Date and the callout reads *"Are we actually
+banking the money we said we would?"*
 
 **One ranked attention list.** In v2, exceptions were scattered across six tabs and nothing
 ranked them against each other. The Executive Brief now carries a single list of every exception
@@ -56,6 +60,7 @@ were each rendered on two different tabs in v2. Each now has one home.
 | Capability coverage chart | It was the top 14 rows of the table directly beneath it |
 | Location alignment matrix | Genuinely interesting, but no action attached at executive altitude |
 | Onshore View, Indonesia View | Tabs that existed because the data has two sides, not because executives have two questions |
+| — | *Workforce Planning was kept, as its own tab — forecast, funding alignment and capability coverage needed room rather than compression* |
 | Scenario save/load, comparison chart, forecast method picker | Workbench simplified to presets plus one slider; method selection moved to Reference |
 | 8 duplicate KPI cards | Same number rendered on two tabs |
 
@@ -73,6 +78,14 @@ until service breaks.
 the accountable owner, five headline stats, and **every individual position falling behind** —
 position id, wave, location, target exit date, days late, why it is behind, and unrealized
 savings. A gap becomes a conversation with a named owner rather than a number.
+
+**Function accountability on Decisions.** Every function ranked by unrealized savings with its
+accountable owner, positions behind, and open/overdue actions. Clicking through opens the full
+drill-down: the individual positions falling behind, the initiatives covering that domain, and the
+actions in flight — so a gap is always attached to a name and to work already under way.
+
+**A real metric dictionary.** Twenty metrics with seven columns: metric, **where it appears**,
+definition, formula, **where it is pulled from**, owner, and current value.
 
 **Simplified scenario workbench.** Three preset chips carrying the programme's own history (best
 quarter / current pace / worst quarter), one prominent realization-rate slider, four advanced
@@ -116,14 +129,14 @@ routing. `js/pages.js` owns every piece of markup and rendering. Nothing is comp
 ## Project layout
 
 ```
-index.html            five tabs
+index.html            six tabs
 css/styles.css        Aberdeen brand system — palette is locked
 js/data.js            transition roles, with accountable owner per role
 js/workforce.js       roster, WFT forecast, initiatives, actions, funding, policy
 js/metrics.js         the ONLY aggregation layer
 js/forecast.js        projections, confidence band, leakage forecast
 js/app.js             engine: state, filters, chrome, charts, scenario math, routing
-js/pages.js           all markup and rendering for the five tabs
+js/pages.js           all markup and rendering for the six tabs
 js/exports.js         2027 CT / EBC workbook, Jira CSV, roster CSV
 js/admin.js           admin actions, email drafts, action log
 js/chatbot.js         intent parser over the metrics layer

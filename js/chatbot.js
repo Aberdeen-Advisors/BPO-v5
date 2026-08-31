@@ -55,7 +55,7 @@ var CHATBOT = (function () {
       '<ul><li>' + k.hired + ' of ' + k.hiredPlanned + ' planned backfills are hired (' + fmtPct(k.hired / (k.hiredPlanned || 1)) + ')</li>' +
       '<li>' + (k.hired - k.hireOnTime) + ' hires started later than their target date</li>' +
       '<li>' + k.stabilized + ' roles are fully stabilized (KT complete)</li></ul>' +
-      viewLink('View in Indonesia View', c.filters, 3) + asOfLine(c);
+      viewLink('View Savings & Delivery', c.filters, 2) + asOfLine(c);
   }
 
   function ansOnPlan(c) {
@@ -67,7 +67,7 @@ var CHATBOT = (function () {
       '<li>At the current <b>' + fmtPct(k.realizationRate) + '</b> realization rate, year-end lands at <b>' + fmtM(k.projectedYearEndUSD) +
       '</b> vs. the <b>' + fmtM(k.targetUSD) + '</b> target — a ' + fmt$(Math.abs(k.gapToTargetUSD)) + ' gap</li>' +
       '<li>' + k.overdue + ' rolloffs are overdue and ' + METRICS.zeroRealization(DATA, c.filters).length + ' functions have realized nothing</li></ul>' +
-      viewLink('View Transition Summary', c.filters, 1) + asOfLine(c);
+      viewLink('View the Executive Brief', c.filters, 1) + asOfLine(c);
   }
 
   function dimTable(c, dim, label) {
@@ -88,7 +88,7 @@ var CHATBOT = (function () {
     if (wantDomain || none) parts.push(dimTable(c, 'domain', 'Domain'));
     if (wantBU || none) parts.push(dimTable(c, 'businessUnit', 'Business Unit'));
     if (wantLoc || none) parts.push(dimTable(c, 'location', 'Location'));
-    return lead + parts.join('') + viewLink('View Variance Detail', c.filters, 4) + asOfLine(c);
+    return lead + parts.join('') + viewLink('View Savings & Delivery', c.filters, 2) + asOfLine(c);
   }
 
   function ansGapDrivers(c) {
@@ -101,7 +101,7 @@ var CHATBOT = (function () {
         return '<li><b>' + esc(d.name) + '</b> — ' + fmt$(d.gapUSD) + ' unrealized (' + fmtPct(d.attainment) + ' attainment)</li>';
       }).join('') + '</ul>' +
       (zero.length ? 'On top of that, <b>' + zero.length + ' functions have realized zero</b> — ' + fmt$(zeroSum) + ' of planned savings untouched.' : '') +
-      viewLink('View Variance Detail', c.filters, 4) + asOfLine(c);
+      viewLink('View Savings & Delivery', c.filters, 2) + asOfLine(c);
   }
 
   function ansZeroRealization(c) {
@@ -114,7 +114,7 @@ var CHATBOT = (function () {
         return '<tr><td>' + esc(z.name) + '</td><td>' + fmt$(z.plannedUSD) + '</td><td>' + z.headcount + '</td></tr>';
       }).join('') + '</table>' +
       'All are Wave 4 infrastructure functions with no exits yet — pulling them forward is the single biggest lever on the gap.' +
-      viewLink('View these functions', { functionName: zero.map(function (z) { return z.name; }) }, 4) + asOfLine(c);
+      viewLink('View these functions', { functionName: zero.map(function (z) { return z.name; }) }, 2) + asOfLine(c);
   }
 
   function ansOverdue(c) {
@@ -124,7 +124,7 @@ var CHATBOT = (function () {
       '<ul><li>Cumulative cost leakage to date: <b>' + fmt$(od.cumulativeLeakageUSD) + '</b></li>' +
       '<li>Current run-rate: roughly <b>' + fmt$(od.estMonthlyRunRateUSD) + ' per month</b> while they remain onshore</li>' +
       '<li>All are Wave 2 roles past their July target dates</li></ul>' +
-      viewLink('View overdue roles', { statusBucket: ['Overdue / at risk'] }, 1) + asOfLine(c);
+      viewLink('View overdue roles', { statusBucket: ['Overdue / at risk'] }, 2) + asOfLine(c);
   }
 
   function ansScenario(c, q) {
@@ -137,7 +137,7 @@ var CHATBOT = (function () {
       '<ul><li>Gap to the ' + fmtM(c.k.targetUSD) + ' target: <b>' + fmt$(res.gapToTargetUSD) + '</b></li>' +
       '<li>Formula: ' + fmtM(c.k.realizedUSD) + ' YTD + (' + fmtM(c.k.remainingPipelineUSD) + ' remaining × ' + fmtPct(rate) + ')</li>' +
       '<li>' + (res.projectedYearEndUSD >= c.k.targetUSD ? 'This closes the gap.' : 'Even at this pace the target is missed — closing it fully needs the zero-realization functions pulled forward.') + '</li></ul>' +
-      viewLink('Open the Scenario Workbench', c.filters, 5) + asOfLine(c);
+      viewLink('Open the Scenario Workbench', c.filters, 2) + asOfLine(c);
   }
 
   function ansExits(c) {
@@ -146,7 +146,7 @@ var CHATBOT = (function () {
       '<ul><li>' + k.stabilized + ' stabilized (KT complete) · ' + k.coverageGap + ' exited before their BPO Hub role stabilized</li>' +
       '<li>Rolloff attainment: ' + fmtPct(k.rolloffAttainment) + ' vs. plan-to-date</li>' +
       '<li>' + k.overdue + ' overdue · average delay ' + k.avgDelayDays + ' days</li></ul>' +
-      viewLink('View Transition Summary', c.filters, 1) + asOfLine(c);
+      viewLink('View the Executive Brief', c.filters, 1) + asOfLine(c);
   }
 
   function ansSavings(c) {
@@ -156,7 +156,7 @@ var CHATBOT = (function () {
       '<ul><li>Full-year target: ' + fmtM(k.targetUSD) + ' · projected year-end: <b>' + fmtM(k.projectedYearEndUSD) + '</b></li>' +
       '<li>Realization ratio (trailing 2 completed quarters): ' + fmtPct(k.realizationRate) + '</li>' +
       '<li>Savings at risk: ' + fmt$(k.savingsAtRiskUSD) + ' · cost leakage: ' + fmt$(k.leakageUSD) + '</li></ul>' +
-      viewLink('View Savings & Projection', c.filters, 5) + asOfLine(c);
+      viewLink('View Savings & Delivery', c.filters, 2) + asOfLine(c);
   }
 
   function ansKT(c) {
@@ -176,7 +176,7 @@ var CHATBOT = (function () {
       methods.map(function (m) { return '<tr><td>' + esc(m.label) + '</td><td>' + fmtM(m.projectedUSD) + '</td></tr>'; }).join('') +
       '</table>Confidence band: ' + fmtM(band.lowUSD) + '–' + fmtM(band.highUSD) +
       (band.crossesTarget ? ' — the upper band reaches the target.' : ' — the band does not reach the ' + fmtM(c.k.targetUSD) + ' target.') +
-      viewLink('View Savings & Projection', c.filters, 5) + asOfLine(c);
+      viewLink('View Savings & Delivery', c.filters, 2) + asOfLine(c);
   }
 
   function ansFunction(c, fnName) {
@@ -187,7 +187,7 @@ var CHATBOT = (function () {
       ' of ' + fmt$(k.plannedFYUSD) + ' planned savings realized (' + fmtPct(k.plannedFYUSD ? k.realizedUSD / k.plannedFYUSD : 0) + ').</b>' +
       '<ul><li>' + k.stabilized + ' stabilized · ' + k.overdue + ' overdue · ' + k.ktNotStarted + ' KT not started</li>' +
       '<li>Baseline onshore cost: ' + fmtM(k.baselineOnshoreCostUSD) + '</li></ul>' +
-      viewLink('Filter dashboard to ' + esc(fnName), f, 4) + asOfLine(c);
+      viewLink('Filter dashboard to ' + esc(fnName), f, 2) + asOfLine(c);
   }
 
 
@@ -203,7 +203,7 @@ var CHATBOT = (function () {
       '<tr><td>' + (a.includesHub ? 'BPO Hub counted as non-FTE' : 'BPO Hub excluded') + '</td><td>' +
       Math.round(a.ratio * 1000) / 10 + '%</td><td>' + a.gapHeads + '</td></tr></table>' +
       'The two definitions disagree on whether you are on target. That decision has no owner yet.' +
-      viewLink('View Workforce Mix', c.filters, 6) + asOfLine(c);
+      viewLink('View Workforce', c.filters, 3) + asOfLine(c);
   }
 
   function ansCoverage(c) {
@@ -218,7 +218,7 @@ var CHATBOT = (function () {
         return '<tr><td>' + esc(r.capability) + '</td><td>' + r.headcount + '</td><td>' + r.teamCount + '</td></tr>';
       }).join('') + '</table>' +
       'There are also <b>' + cov.spofPairs.length + '</b> domain-and-capability combinations covered by exactly one person.' +
-      viewLink('View Workforce Planning', c.filters, 7) + asOfLine(c);
+      viewLink('View Workforce', c.filters, 3) + asOfLine(c);
   }
 
   function ansCliff(c) {
@@ -230,7 +230,7 @@ var CHATBOT = (function () {
         return '<li>' + esc(d.domain) + ' — <b>' + d.count + '</b></li>';
       }).join('') + '</ul>' +
       'Procurement lead time is typically longer than this window, so anything in it is already urgent.' +
-      viewLink('View the contract cliff', c.filters, 6) + asOfLine(c);
+      viewLink('View Workforce', c.filters, 3) + asOfLine(c);
   }
 
   function ansVendors(c) {
@@ -241,7 +241,7 @@ var CHATBOT = (function () {
       vf.vendors.slice(0, 7).map(function (v) {
         return '<tr><td>' + esc(v.vendor) + '</td><td>' + v.headcount + '</td><td>' + v.teams + '</td></tr>';
       }).join('') + '</table>' +
-      viewLink('View Workforce Mix', c.filters, 6) + asOfLine(c);
+      viewLink('View Workforce', c.filters, 3) + asOfLine(c);
   }
 
   function ansBlocked(c) {
@@ -254,7 +254,7 @@ var CHATBOT = (function () {
       }).join('') + '</ul>' +
       '<b>' + as.overdue + '</b> action items are overdue and <b>' + ih.totalGap +
       '</b> people short across all initiatives.' +
-      viewLink('View Work Management', c.filters, 8) + asOfLine(c);
+      viewLink('View Decisions', c.filters, 5) + asOfLine(c);
   }
 
   function ansWftForecast(c) {
@@ -265,7 +265,7 @@ var CHATBOT = (function () {
       '<ul><li>Net headcount change over the forecast: <b>' + (w.headcountDelta >= 0 ? '+' : '') + w.headcountDelta + '</b></li>' +
       '<li>' + w.historicalMonths + ' months of actuals, ' + w.forecastMonths + ' months forecast</li>' +
       '<li>' + (w.direction < 0 ? 'The trajectory moves <b>away</b> from target, because roles transferred to the BPO Hub count as non-FTE.' : 'The trajectory moves toward target.') + '</li></ul>' +
-      viewLink('View Workforce Planning', c.filters, 7) + asOfLine(c);
+      viewLink('View Workforce', c.filters, 3) + asOfLine(c);
   }
 
   function ansFunding(c) {
@@ -276,7 +276,7 @@ var CHATBOT = (function () {
       '</b> · assigned <b>' + f.totals.assignedFte + '</b></li>' +
       '<li><b>' + f.unfundedPositions + '</b> positions on the roster carry no funding source (' + fmt$(f.unfundedCostUSD) + ')</li>' +
       '<li><b>' + f.unassignedPositions + '</b> people are not mapped to any initiative</li></ul>' +
-      viewLink('View Workforce Planning', c.filters, 7) + asOfLine(c);
+      viewLink('View Planning & Forecast', c.filters, 4) + asOfLine(c);
   }
 
   function ansNotes(c) {
@@ -286,7 +286,7 @@ var CHATBOT = (function () {
       '<table><tr><th>Theme</th><th>Mentions</th></tr>' +
       an.themes.map(function (t) { return '<tr><td>' + esc(t.theme) + '</td><td>' + t.n + '</td></tr>'; }).join('') +
       '</table>' + an.high.length + ' item(s) rate high severity.' +
-      viewLink('View Work Management', c.filters, 8) + asOfLine(c);
+      viewLink('View Decisions', c.filters, 5) + asOfLine(c);
   }
 
   // ---------- router ----------
