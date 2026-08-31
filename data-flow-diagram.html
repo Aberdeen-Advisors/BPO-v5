@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>BPO Hub Transition — Data Flow: Current & Ideal State</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --aberdeen-blue:#09375F; --verdigris:#44B0B1; --white:#FFFFFF; --onyx:#404040;
+    --sky:#5CC8FF; --jade:#00A676; --gold:#F7D002; --jasper:#DB504A;
+    --canvas:#F7F9FB; --hairline:rgba(9,55,95,.10); --muted:rgba(9,55,95,.62);
+    --amber-text:#8A7400;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Poppins',Arial,sans-serif;font-weight:400;background:var(--canvas);color:var(--onyx);font-size:11px;line-height:1.45}
+  .sheet{max-width:1400px;margin:0 auto;padding:0 28px 40px}
+  .masthead{background:var(--aberdeen-blue);color:var(--white);margin:0 -28px 22px;padding:20px 34px;display:flex;align-items:center;gap:18px}
+  .masthead img{height:30px}
+  .masthead .div{width:1px;height:30px;background:rgba(255,255,255,.3)}
+  .masthead h1{font-weight:200;font-size:21px;margin:0}
+  .masthead .sub{font-size:11px;color:var(--verdigris);margin-top:2px}
+  .masthead .print-hint{margin-left:auto;font-size:10.5px;color:rgba(255,255,255,.7)}
+  h2{font-weight:200;color:var(--aberdeen-blue);font-size:17px;margin:26px 0 4px}
+  h2 .chip{display:inline-block;font-size:9.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;border-radius:10px;padding:2px 10px;margin-left:10px;vertical-align:middle}
+  .chip.now{background:var(--aberdeen-blue);color:var(--white)}
+  .chip.future{background:var(--verdigris);color:var(--aberdeen-blue)}
+  .lede{color:var(--muted);font-size:11.5px;margin:0 0 12px;max-width:900px}
+
+  /* Panel A — swimlane */
+  .flow{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:6px 0 2px}
+  .step{background:var(--white);border:1px solid var(--hairline);border-radius:8px;padding:10px 12px;min-width:138px;flex:1;position:relative;box-shadow:0 1px 3px rgba(9,55,95,.06)}
+  .step.risk{border-top:3px solid var(--jasper)}
+  .step.safe{border-top:3px solid var(--verdigris)}
+  .step h4{font-weight:500;font-size:11px;color:var(--aberdeen-blue);margin:0 0 5px}
+  .step .meta{font-size:9.5px;color:var(--muted);line-height:1.5}
+  .step .meta b{color:var(--onyx);font-weight:500}
+  .step .risk-tag{display:inline-block;margin-top:6px;font-size:9px;font-weight:500;color:var(--jasper);background:rgba(219,80,74,.10);border-radius:8px;padding:1px 8px}
+  .arrow{display:flex;align-items:center;color:var(--aberdeen-blue);font-size:15px;padding:0 4px;flex:0 0 auto}
+  .gaps{background:rgba(219,80,74,.07);border:1px solid rgba(219,80,74,.25);border-left:4px solid var(--jasper);border-radius:8px;padding:11px 16px;margin-top:12px;display:flex;gap:26px;flex-wrap:wrap}
+  .gaps h5{margin:0 0 3px;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--jasper);font-weight:500;width:100%}
+  .gaps div{font-size:10.5px;max-width:300px}
+  .gaps b{color:var(--jasper);font-weight:500}
+
+  /* Panel B — medallion */
+  .medallion{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+  .layer{background:var(--white);border:1px solid var(--hairline);border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(9,55,95,.06)}
+  .layer h3{font-weight:500;font-size:13px;margin:0 0 2px;display:flex;align-items:center;gap:8px}
+  .medal{width:14px;height:14px;border-radius:50%;display:inline-block}
+  .layer.bronze h3{color:var(--aberdeen-blue)} .layer.bronze .medal{background:var(--sky)}
+  .layer.silver h3{color:var(--aberdeen-blue)} .layer.silver .medal{background:var(--verdigris)}
+  .layer.gold h3{color:var(--aberdeen-blue)} .layer.gold .medal{background:var(--gold)}
+  .layer .tag{font-size:9.5px;color:var(--muted);margin-bottom:8px}
+  .layer ul{margin:0;padding-left:16px}
+  .layer li{margin-bottom:4px;font-size:10.5px}
+  .flow-arrows{text-align:center;color:var(--aberdeen-blue);font-size:11px;margin:-6px 0 10px;letter-spacing:.03em}
+  .practices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .practice{background:var(--white);border:1px solid var(--hairline);border-left:3px solid var(--verdigris);border-radius:6px;padding:8px 12px;font-size:10.5px}
+  .practice b{color:var(--aberdeen-blue);font-weight:500;display:block;margin-bottom:1px}
+
+  /* Panel C — migration */
+  .phases{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .phase{background:var(--white);border:1px solid var(--hairline);border-radius:8px;padding:13px 16px;position:relative;box-shadow:0 1px 3px rgba(9,55,95,.06)}
+  .phase .num{position:absolute;top:-11px;left:14px;background:var(--aberdeen-blue);color:var(--white);font-size:10px;font-weight:500;border-radius:10px;padding:2px 12px}
+  .phase.p1 .num{background:var(--onyx)}
+  .phase.p3 .num{background:var(--verdigris);color:var(--aberdeen-blue)}
+  .phase h4{font-weight:500;font-size:12px;color:var(--aberdeen-blue);margin:6px 0 4px}
+  .phase p{margin:0;font-size:10.5px}
+  .phase .unlock{margin-top:7px;font-size:10px;color:var(--jade);font-weight:500}
+  .footer{margin-top:26px;border-top:1px solid var(--hairline);padding-top:10px;display:flex;justify-content:space-between;font-size:9.5px;color:var(--muted)}
+
+  @media print{
+    @page{size:letter landscape;margin:9mm}
+    body{background:var(--white);font-size:9px}
+    .sheet{max-width:none;padding:0}
+    .masthead{margin:0 0 10px;padding:12px 18px;border-radius:6px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .print-hint{display:none}
+    h2{font-size:13px;margin:12px 0 3px}
+    .step,.layer,.practice,.phase,.gaps{box-shadow:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    section{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="masthead">
+    <img src="assets/logo-white.svg" alt="Aberdeen Advisors">
+    <div class="div"></div>
+    <div>
+      <h1>BPO Hub Transition — Data Flow</h1>
+      <div class="sub">Current state, target architecture, and the path between them</div>
+    </div>
+    <div class="print-hint">Print to PDF · landscape</div>
+  </div>
+
+  <!-- ============ PANEL A — CURRENT STATE ============ -->
+  <section>
+    <h2>How the weekly number is produced today<span class="chip now">Current state</span></h2>
+    <p class="lede">Every figure on the dashboard traces back to this chain. It works — but four of the nine steps are manual, and the whole chain depends on one person and one spreadsheet.</p>
+    <div class="flow">
+      <div class="step safe">
+        <h4>Source systems</h4>
+        <div class="meta"><b>Owner:</b> IT / vendor<br><b>Tool:</b> HRIS · vendor timesheets · finance / GL · program tracker<br><b>Freq:</b> continuous</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step risk">
+        <h4>Weekly extract compiled</h4>
+        <div class="meta"><b>Owner:</b> BPO Hub team<br><b>Tool:</b> manual queries + copy-paste<br><b>Freq:</b> weekly</div>
+        <span class="risk-tag">Manual</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step risk">
+        <h4>Cleaning &amp; reconciliation</h4>
+        <div class="meta"><b>Owner:</b> BPO Hub analyst<br><b>Tool:</b> Excel<br><b>Freq:</b> weekly, ~½ day</div>
+        <span class="risk-tag">Manual · error-prone</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step risk">
+        <h4>Workbook vs. fixed template</h4>
+        <div class="meta"><b>Owner:</b> BPO Hub team<br><b>Tool:</b> Excel template<br><b>Freq:</b> weekly</div>
+        <span class="risk-tag">No version control</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step risk">
+        <h4>Program lead receives file</h4>
+        <div class="meta"><b>Owner:</b> program lead<br><b>Tool:</b> email<br><b>Freq:</b> weekly</div>
+        <span class="risk-tag">Single point of failure</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step safe">
+        <h4>Upload to tool</h4>
+        <div class="meta"><b>Owner:</b> program lead<br><b>Tool:</b> tracker (in-browser)<br><b>Freq:</b> weekly</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step safe">
+        <h4>Validation</h4>
+        <div class="meta"><b>Owner:</b> automated<br><b>Tool:</b> schema + reconciliation checks<br><b>Freq:</b> on upload</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step safe">
+        <h4>Dashboard refresh</h4>
+        <div class="meta"><b>Owner:</b> automated<br><b>Tool:</b> metrics layer + storyline regeneration<br><b>Freq:</b> on commit</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step safe">
+        <h4>Distribution</h4>
+        <div class="meta"><b>Owner:</b> program lead<br><b>Tool:</b> link + drafted updates<br><b>Freq:</b> weekly</div>
+      </div>
+    </div>
+    <div class="gaps">
+      <h5>Named gaps — stated honestly</h5>
+      <div><b>Single point of failure:</b> one person compiles, cleans, and uploads. A sick day delays the board number.</div>
+      <div><b>No version control:</b> the workbook is emailed; there is no authoritative copy and no history of what changed.</div>
+      <div><b>Manual reconciliation is error-prone:</b> cross-system matching is done by eye; errors surface downstream, if at all.</div>
+      <div><b>No lineage or audit trail:</b> a figure on the dashboard cannot be traced to the source record that produced it.</div>
+    </div>
+  </section>
+
+  <!-- ============ PANEL B — IDEAL STATE ============ -->
+  <section>
+    <h2>Target architecture — medallion pattern<span class="chip future">Future state</span></h2>
+    <p class="lede">Three layers, each with one job. Data lands raw, gets cleaned once under controls, and is served from a single certified layer — so the dashboard, the chatbot, and the board deck cannot disagree.</p>
+    <div class="medallion">
+      <div class="layer bronze">
+        <h3><span class="medal"></span>Bronze — raw ingestion</h3>
+        <div class="tag">Automated feeds from HRIS, GL, and vendor systems</div>
+        <ul>
+          <li>Append-only and immutable — full source fidelity</li>
+          <li>Ingestion timestamp on every row</li>
+          <li>No transformation at this layer</li>
+        </ul>
+      </div>
+      <div class="layer silver">
+        <h3><span class="medal"></span>Silver — cleansed &amp; conformed</h3>
+        <div class="tag">One set of rules replaces the manual cleaning step</div>
+        <ul>
+          <li>Dedupe and type enforcement</li>
+          <li>Conformed dimensions: function, BU, location, wave</li>
+          <li>Slowly-changing dimensions preserve history</li>
+          <li>Quality-rule violations quarantined, never silently dropped</li>
+        </ul>
+      </div>
+      <div class="layer gold">
+        <h3><span class="medal"></span>Gold — business-ready</h3>
+        <div class="tag">What the dashboard and the board actually consume</div>
+        <ul>
+          <li>Curated facts and dimensions, pre-aggregated</li>
+          <li>One certified definition of every metric</li>
+          <li>Row-level security; direct BI consumption</li>
+        </ul>
+      </div>
+    </div>
+    <div class="flow-arrows">Sources → Bronze → Silver → Gold → Dashboard · chatbot · board reporting</div>
+    <div class="practices">
+      <div class="practice"><b>Automated orchestration</b>Scheduled pipelines with retries and failure alerts routed to a named owner.</div>
+      <div class="practice"><b>Data contracts</b>Agreed schema, types, and delivery SLAs with the BPO Hub team — enforced, not assumed.</div>
+      <div class="practice"><b>Quality gates at each layer</b>Completeness, uniqueness, validity, timeliness, and GL reconciliation checks.</div>
+      <div class="practice"><b>Full lineage</b>Every dashboard number traces to the source record that produced it.</div>
+      <div class="practice"><b>Version control</b>All transformation logic in git; no undocumented manual steps anywhere.</div>
+      <div class="practice"><b>Master data management</b>Function and BU names governed centrally so they never drift.</div>
+      <div class="practice"><b>Certified metric layer</b>One definition per metric — dashboard, chatbot, and board deck cannot disagree.</div>
+      <div class="practice"><b>Governance</b>Named owner per domain, definitions in a catalog, access control, retention policy.</div>
+      <div class="practice"><b>Fresh by default</b>Daily or near-real-time refresh with a freshness SLA displayed to every user.</div>
+    </div>
+  </section>
+
+  <!-- ============ PANEL C — MIGRATION PATH ============ -->
+  <section>
+    <h2>Migration path</h2>
+    <div class="phases" style="margin-top:16px">
+      <div class="phase p1">
+        <span class="num">Phase 1 · today</span>
+        <h4>Manual Excel, controlled</h4>
+        <p>Fixed template, in-browser validation, and audit-logged uploads — the current tool.</p>
+        <div class="unlock">Unlocks: a trustworthy weekly number without any infrastructure spend.</div>
+      </div>
+      <div class="phase p2">
+        <span class="num">Phase 2</span>
+        <h4>Automated extract to a landing zone</h4>
+        <p>Source systems deliver on a schedule to managed storage; the manual cleaning step is retired.</p>
+        <div class="unlock">Unlocks: no single point of failure, and a full history of every delivery.</div>
+      </div>
+      <div class="phase p3">
+        <span class="num">Phase 3</span>
+        <h4>Full medallion</h4>
+        <p>Contracts, quality gates, lineage, and a certified semantic layer feeding BI directly.</p>
+        <div class="unlock">Unlocks: daily refresh, board-grade auditability, and metrics that cannot drift.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <span>Aberdeen Advisors · BPO Hub Transition program</span>
+    <span>Illustrative architecture for leadership discussion — not an implementation commitment</span>
+  </div>
+</div>
+</body>
+</html>

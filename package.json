@@ -1,0 +1,6 @@
+{
+  "name": "bpo-hub-transition-tracker",
+  "version": "1.0.0",
+  "description": "BPO Hub Transition — Cost & Savings Tracker. Static demo prototype; no build step, no dependencies.",
+  "private": true
+}

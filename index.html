@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>BPO Hub Transition — Executive Center</title>
+<link rel="icon" type="image/svg+xml" href="assets/icon-blue.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ======================= APP SHELL ======================= -->
+<div id="app">
+
+  <div class="topbar">
+    <img class="logo" src="assets/logo-white.svg" alt="Aberdeen Advisors">
+    <div class="divider"></div>
+    <div class="app-title"><b>BPO Hub Transition</b> — Executive Center</div>
+    <span class="demo-badge">Demo — illustrative data</span>
+    <div class="spacer"></div>
+    <div class="data-stamp" id="data-stamp"></div>
+    <div class="role-switch" id="role-switch" role="group" aria-label="Demo role"></div>
+    <div id="admin-slot" style="position:relative;"></div>
+  </div>
+
+  <div class="filterbar" id="filterbar">
+    <span class="fb-label">Filters</span>
+    <span id="filter-chips" style="display:contents;"></span>
+    <span class="role-count" id="role-count"></span>
+  </div>
+
+  <div class="shell">
+    <nav class="slicer-rail" id="slicer-rail" aria-label="Slicers"></nav>
+
+    <main class="canvas">
+
+      <section class="page active" id="page-1" data-title="Executive Brief">
+        <div class="page-head">
+          <div>
+            <h2>Executive Brief</h2>
+            <p>Where the programme stands, where it lands, and what needs your attention first.</p>
+          </div>
+          <span class="page-badge">Start here</span>
+        </div>
+        <div id="p1-body"></div>
+      </section>
+
+      <section class="page" id="page-2" data-title="Savings & Delivery">
+        <div class="page-head">
+          <div>
+            <h2>Savings &amp; Delivery</h2>
+            <p>What is driving the gap, where cost actually sits, who owns it, and what would change the outcome.</p>
+          </div>
+          <span class="page-badge">Drivers</span>
+        </div>
+        <div id="p2-body"></div>
+      </section>
+
+      <section class="page" id="page-3" data-title="Workforce">
+        <div class="page-head">
+          <div>
+            <h2>Workforce</h2>
+            <p>Whether the workforce is the shape we committed to, where it is heading, and where it is fragile.</p>
+          </div>
+          <span class="page-badge">Shape &amp; risk</span>
+        </div>
+        <div id="p3-body"></div>
+      </section>
+
+      <section class="page" id="page-4" data-title="Decisions">
+        <div class="page-head">
+          <div>
+            <h2>Decisions</h2>
+            <p>What is blocked, what is slipping, and which decisions are already agreed and waiting on a threshold.</p>
+          </div>
+          <span class="page-badge">Act</span>
+        </div>
+        <div id="p4-body"></div>
+      </section>
+
+      <section class="page" id="page-5" data-title="Reference">
+        <div class="page-head">
+          <div>
+            <h2>Reference</h2>
+            <p>Metric definitions and the switches behind them, transition detail, and how this connects to other tools.</p>
+          </div>
+          <span class="page-badge">Governance</span>
+        </div>
+        <div id="p5-body"></div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="pagetabs" id="pagetabs" aria-label="Report tabs">
+    <button class="pagetab active" data-page="1"><span class="tabnum">01</span>Executive Brief</button>
+    <button class="pagetab" data-page="2"><span class="tabnum">02</span>Savings &amp; Delivery</button>
+    <button class="pagetab" data-page="3"><span class="tabnum">03</span>Workforce</button>
+    <button class="pagetab" data-page="4"><span class="tabnum">04</span>Decisions</button>
+    <button class="pagetab" data-page="5"><span class="tabnum">05</span>Reference</button>
+  </nav>
+
+  <button id="chat-fab" aria-label="Ask the data assistant">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 3.5C2 2.7 2.7 2 3.5 2h9c.8 0 1.5.7 1.5 1.5v6c0 .8-.7 1.5-1.5 1.5H6l-3 3v-3h.5A1.5 1.5 0 0 1 2 9.5v-6Z" fill="#09375F"/></svg>
+    Ask the data
+  </button>
+
+  <aside id="chat-panel" aria-label="Data assistant">
+    <div class="chat-head">
+      <div>
+        <h4>Transition Data Assistant</h4>
+        <span class="chat-sub" id="chat-asof">Demo mode — illustrative data</span>
+      </div>
+      <button id="chat-close" aria-label="Close">×</button>
+    </div>
+    <div class="chat-body" id="chat-body"></div>
+    <div class="chat-input">
+      <input type="text" id="chat-text" placeholder="Ask about exits, savings, functions…" autocomplete="off">
+      <button id="chat-send">Send</button>
+    </div>
+  </aside>
+
+</div>
+
+<div class="modal-backdrop" id="modal-backdrop"><div class="modal" id="modal-box"></div></div>
+<div class="info-pop" id="info-pop"></div>
+<div id="toast"></div>
+
+<!-- CDN dependencies, then app scripts in dependency order (no modules — works from file://) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/workforce.js"></script>
+<script src="js/metrics.js"></script>
+<script src="js/forecast.js"></script>
+<script src="js/app.js"></script>
+<script src="js/pages.js"></script>
+<script src="js/exports.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/chatbot.js"></script>
+<script src="js/upload.js"></script>
+</body>
+</html>

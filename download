@@ -1,0 +1,16 @@
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Tooling
+node_modules/
+.vercel/
+*.log
+
+# Real program data must never be committed — the tool loads data via in-browser Excel upload only
+*.xlsx
+*.xls
+*.csv
+!assets/*.xlsx
+data/
+uploads/
